@@ -93,7 +93,7 @@ The received alarm messages:
 The sensor uses a small 400mAh battery, which is sufficient for this application, as the sensor is only 10 seconds active every 1 minute.     
 The battery is recharged during the day by a solar panel. The panel I used is 5V output panel, so that I can directly connect it to the WisBlock Base board.
 
-| <img src="./assets/01-assembly.jpg" alt="Overview" height="250"> | <img src="./assets/02-assembly.jpg" alt="Sensors"  height="250"> | <img src="./assets/03-assembly.jpg" alt="Assembled"  height="250"> |     
+| <img src="./assets/01-assembly.jpg" alt="Overview" width="250"> | <img src="./assets/02-assembly.jpg" alt="Sensors"  width="250"> | <img src="./assets/03-assembly.jpg" alt="Assembled"  width="250"> |     
 | :-: | :-: | :-: |
 
 ----
@@ -106,7 +106,7 @@ The sensor is installed in an unused refill hole of the watertank. The 3D printe
 
 The sensor is just loose in the refill opening and the solar panel is placed on top of the water tank:
 
-| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3" height="250"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4" height="250"> |    
+| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3" height="150"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4" height="150"> |    
 | :-: | :-: | 
 
 To protect the inside of the enclosure against condensing water from the tank the opening at the Laser ToF sensor is sealed with a peace of plastic glued to the enclosure:    
