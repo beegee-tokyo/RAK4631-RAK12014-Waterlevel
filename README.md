@@ -65,7 +65,7 @@ The Chirpstack LPWAN server has two integrations enabled:
 Once Chirpstack has received a data packet for the Overflow sensor, it forwards the data to the two integrations.    
 
 ## Datacake
-I used Datacake because it is a very comfortable tool to visualize the data:      
+I used Datacake because it is a very comfortable tool to visualize the data. Here is the live data: [Datacake](https://app.datacake.de/dashboard/d/6a618495-9c10-4993-941e-96807b5db34f)      
 
 ![Datacake Dashboard](./assets/06-datacake.png)    
 
@@ -74,7 +74,7 @@ In Datacake you can setup _**rules**_ that can send out on email on events. I us
 ![Datacake Email](./assets/14-datacake-email.png)
 
 ## Cayenne LPP MyDevices
-And I added Cayenne LPP MyDevices, because it has more features to take actions on events by using _**triggers**_.
+And I added Cayenne LPP MyDevices, because it has more features to take actions on events by using _**triggers**_. Here is the live data: [Cayenne LPP](https://cayenne.mydevices.com/shared/61bedcebcd6e0055f7569546)
 
 ![Cayenne Dashboard](./assets/07-cayenne.png)    
 
