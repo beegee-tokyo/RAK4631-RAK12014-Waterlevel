@@ -93,26 +93,25 @@ The received alarm messages:
 The sensor uses a small 400mAh battery, which is sufficient for this application, as the sensor is only 10 seconds active every 1 minute.     
 The battery is recharged during the day by a solar panel. The panel I used is 5V output panel, so that I can directly connect it to the WisBlock Base board.
 
-| <img src="./assets/01-assembly.jpg" alt="Modules" width="150"> | <img src="./assets/02-assembly.jpg" alt="RAKstar" width="150"> |     
-| :-: | :-: |
-| <img src="./assets/03-assembly.jpg" alt="RAKstar" width="150"> |  |
+| <img src="./assets/01-assembly.jpg" alt="Overview" height="250"> | <img src="./assets/02-assembly.jpg" alt="Sensors"  height="250"> | <img src="./assets/03-assembly.jpg" alt="Assembled"  height="250"> |     
+| :-: | :-: | :-: |
 
 ----
 
 # Installation  
 The sensor is installed in an unused refill hole of the watertank. The 3D printed enclosure has a pipe that matches the diameter of the refill opening:
 
-| <img src="./assets/14-tank-detail-1.jpg" alt="Modules" width="150"> | <img src="./assets/15-tank-detail-2.jpg" alt="RAKstar" width="150"> |    
+| <img src="./assets/14-tank-detail-1.jpg" alt="Mounting Detail 1" > | <img src="./assets/15-tank-detail-2.jpg" alt="Mounting Detail 2"> |    
 | :-: | :-: | 
 
 The sensor is just loose in the refill opening and the solar panel is placed on top of the water tank:
 
-| <img src="./assets/04-mounted.jpg" alt="Modules" height="250"> | <img src="./assets/05-mounted.jpg" alt="RAKstar" height="250"> |    
+| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3" height="250"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4" height="250"> |    
 | :-: | :-: | 
 
 To protect the inside of the enclosure against condensing water from the tank the opening at the Laser ToF sensor is sealed with a peace of plastic glued to the enclosure:    
 
-<img src="./assets/16-sealing-sensor.jpg" alt="Modules" width="250">
+<img src="./assets/16-sealing-sensor.jpg" alt="Window Sealing" width="250">
 
 
 ----
