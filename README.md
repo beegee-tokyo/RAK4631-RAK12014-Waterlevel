@@ -101,12 +101,12 @@ The battery is recharged during the day by a solar panel. The panel I used is 5V
 # Installation  
 The sensor is installed in an unused refill hole of the watertank. The 3D printed enclosure has a pipe that matches the diameter of the refill opening:
 
-| <img src="./assets/14-tank-detail-1.jpg" alt="Mounting Detail 1" > | <img src="./assets/15-tank-detail-2.jpg" alt="Mounting Detail 2"> |    
+| <img src="./assets/14-tank-detail-1.jpg" alt="Mounting Detail 1" width="250"> | <img src="./assets/15-tank-detail-2.jpg" alt="Mounting Detail 2" width="250"> |    
 | :-: | :-: | 
 
 The sensor is just loose in the refill opening and the solar panel is placed on top of the water tank:
 
-| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3" height="150"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4" height="150"> |    
+| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3"  width="250"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4"  width="250"> |    
 | :-: | :-: | 
 
 To protect the inside of the enclosure against condensing water from the tank the opening at the Laser ToF sensor is sealed with a peace of plastic glued to the enclosure:    
