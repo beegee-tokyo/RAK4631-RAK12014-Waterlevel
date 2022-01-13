@@ -90,6 +90,9 @@ struct sensor_payload_s
 	uint8_t data_flag6 = 0x04; // 12 Channel # 4
 	uint8_t data_flag7 = 0x66; // 13 Presence sensor (Alarm)
 	uint8_t alarm_ll = 0;	   // 14 Alarm flag low level
+	uint8_t data_flag8 = 0x05; // 15 Channel # 4
+	uint8_t data_flag9 = 0x66; // 16 Presence sensor (Validity)
+	uint8_t valid = 0;		   // 17 Validity flag
 };
 extern sensor_payload_s g_sensor_payload;
 #define PAYLOAD_LENGTH sizeof(sensor_payload_s)

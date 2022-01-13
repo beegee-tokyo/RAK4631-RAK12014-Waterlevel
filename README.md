@@ -12,7 +12,7 @@
 Watertank Overflow detection using the **RAKwireless WisBlock** modules. It implements as well a trick to wake up the device from sleep by knocking on the enclosure. 
 
 ## _REMARK_
-The code is based on my low power event driven [WisBlock API](https://github.com/beegee-tokyo/WisBlock-API) :arrow_heading_up:
+The code is based on my low power event driven [WisBlock API](https://github.com/beegee-tokyo/WisBlock-API)
 
 ----
 
@@ -20,7 +20,6 @@ The code is based on my low power event driven [WisBlock API](https://github.com
 Here in the Philippines it is essential to have a water tank, because it is (unfortunately) still quite common that the water supply is cut off.    
 After I got my tank installed, I experienced several time that the floating valve that controls the refill of the tank got stuck and the tank was overflowing for hours before I detected it.    
 As there is no outlet close to the water tank, I needed a low power, solar recharged overflow sensor that can transmit the data over a longer distance.     
-
 **RAKWireless WisBlock** has all components I needed to build my overflow sensor.    
 - **RAK19003 & RAK4631** ==> The base board, battery supply, solar charger, MCU with LPWAN capability
 - **RAK12014** ==> WisBlock Laser ToF sensor to measure the water level
@@ -33,11 +32,12 @@ The enclosure is not IP65 but can protect the electronics from water intrusion u
 | :-: | :-: | :-: |
 
 # Dataflow
-The sensor wakes up every 1 minute (configurable) and measures the distance between the Laser ToF sensor and the water surface. It packs the data into a data packet in [Cayenne LPP format](https://community.mydevices.com/t/cayenne-lpp-2-0/7510) :arrow_heading_up: which includes:    
-- Alarm status Overflow (digital output). Triggered when the distance between the water surface and the sensor is 20mm or less.    
-- Alarm status Low Level (digital output). Triggered when the distance between the water surface and the sensor is 1000mm or more.    
+The sensor wakes up every 1 minute (configurable) and measures the distance between the Laser ToF sensor and the water surface. It packs the data into a data package in [Cayenne LPP format](https://community.mydevices.com/t/cayenne-lpp-2-0/7510) and includes:    
+- Alarm status Overflow (digital output)
+- Alarm status Low Level (digital output)
 - Measured distance to water level (analog output). It is not the calculated water level, just the value read from the Laser ToF sensor. For my water tank the distance between the sensor and the bottom is around 1200mm. If the measured distance is larger than that, the value is discarded. The reason that such values are measured is because the water surface is not an ideal surface for measurement with the Laser ToF. Waves, sprinkling water while refilling can lead to false values.      
-- The battery level of the system (analog output) in volt.
+At a level of ~20, the water level is just below the sensor and the tank starts to overflow.    
+- The battery level of the system (analog output).
 
 The data format is
 ```c++
@@ -57,15 +57,13 @@ uint8_t data_flag7 = 0x66; // 13 Presence sensor (Alarm)
 uint8_t alarm_ll = 0;	   // 14 Alarm flag low level
 ```
 
-The data is sent as a LPWAN packet over a [RAK7258 gateway](https://docs.rakwireless.com/Product-Categories/WisGate/RAK7258/Overview) :arrow_heading_up: to a local Chirpstack LPWAN server.    
+The data is sent as a LPWAN packet over a [RAK7258 gateway](https://docs.rakwireless.com/Product-Categories/WisGate/RAK7258/Overview) to a local Chirpstack LPWAN server.    
 The Chirpstack LPWAN server has two integrations enabled:
-- Datacake. Instructions can be found in [Chirpstack to Datacake tutorial](https://news.rakwireless.com/how-to-visualize-your-sensor-data-on-datacake-using-chirpstack-server/) :arrow_heading_up:
+- Datacake. Instructions can be found in [Chirpstack to Datacake tutorial](https://news.rakwireless.com/how-to-visualize-your-sensor-data-on-datacake-using-chirpstack-server/)
 - Cayenne LPP MyDevices    
 
 Once Chirpstack has received a data packet for the Overflow sensor, it forwards the data to the two integrations.    
-
-## Datacake
-I used Datacake because it is a very comfortable tool to visualize the data. Here is the live data: [Datacake](https://app.datacake.de/dashboard/d/6a618495-9c10-4993-941e-96807b5db34f)      
+I used Datacake because it is a very comfortable tool to visualize the data:      
 
 ![Datacake Dashboard](./assets/06-datacake.png)    
 
@@ -73,12 +71,11 @@ In Datacake you can setup _**rules**_ that can send out on email on events. I us
 
 ![Datacake Email](./assets/14-datacake-email.png)
 
-## Cayenne LPP MyDevices
-And I added Cayenne LPP MyDevices, because it has more features to take actions on events by using _**triggers**_. Here is the live data: [Cayenne LPP](https://cayenne.mydevices.com/shared/61bedcebcd6e0055f7569546)
+And I added Cayenne LPP MyDevices, because it has more features to take actions on events by using _**triggers**_.
 
 ![Cayenne Dashboard](./assets/07-cayenne.png)    
 
-The data **`Overflow`** is connected to a Cayenne LPP MyDevices _**trigger**_ that sends an email and a text message if the overflow sensor sends an alarm:    
+The data **`Alarm`** is connected to a Cayenne LPP MyDevices _**trigger**_ that sends an email and a text message if the overflow sensor sends an alarm:    
 
 ![Cayenne Alarm Trigger](./assets/08-cayenne-trigger.png)    
 
@@ -93,25 +90,25 @@ The received alarm messages:
 The sensor uses a small 400mAh battery, which is sufficient for this application, as the sensor is only 10 seconds active every 1 minute.     
 The battery is recharged during the day by a solar panel. The panel I used is 5V output panel, so that I can directly connect it to the WisBlock Base board.
 
-| <img src="./assets/01-assembly.jpg" alt="Overview" width="250"> | <img src="./assets/02-assembly.jpg" alt="Sensors"  width="250"> | <img src="./assets/03-assembly.jpg" alt="Assembled"  width="250"> |     
-| :-: | :-: | :-: |
+| <img src="./assets/01-assembly.jpg" alt="Modules" height="250"> | <img src="./assets/02-assembly.jpg" alt="RAKstar" height="250"> | <img src="./assets/03-assembly.jpg" alt="RAKstar" height="250"> |    
+| :-: | :-: | :-: | 
 
 ----
 
 # Installation  
 The sensor is installed in an unused refill hole of the watertank. The 3D printed enclosure has a pipe that matches the diameter of the refill opening:
 
-| <img src="./assets/14-tank-detail-1.jpg" alt="Mounting Detail 1" width="250"> | <img src="./assets/15-tank-detail-2.jpg" alt="Mounting Detail 2" width="250"> |    
+| <img src="./assets/14-tank-detail-1.jpg" alt="Modules" width="150"> | <img src="./assets/15-tank-detail-2.jpg" alt="RAKstar" width="150"> |    
 | :-: | :-: | 
 
 The sensor is just loose in the refill opening and the solar panel is placed on top of the water tank:
 
-| <img src="./assets/04-mounted.jpg" alt="Mounting Detail 3"  width="250"> | <img src="./assets/05-mounted.jpg" alt="Mounting Detail 4"  width="250"> |    
+| <img src="./assets/04-mounted.jpg" alt="Modules" height="250"> | <img src="./assets/05-mounted.jpg" alt="RAKstar" height="250"> |    
 | :-: | :-: | 
 
 To protect the inside of the enclosure against condensing water from the tank the opening at the Laser ToF sensor is sealed with a peace of plastic glued to the enclosure:    
 
-<img src="./assets/16-sealing-sensor.jpg" alt="Window Sealing" width="250">
+<img src="./assets/16-sealing-sensor.jpg" alt="Modules" width="250">
 
 
 ----
@@ -126,11 +123,11 @@ To trigger the interrupt, a simple knock-knock on the enclosure is sufficient to
 ----
 
 # Hardware used
-- [RAK4631](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK4631/Overview/) :arrow_heading_up: WisBlock Core module
-- [RAK19003](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK19003/Overview/) :arrow_heading_up: WisBlock Base board
-- [RAK12014](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK12017/Overview/) :arrow_heading_up: WisBlock Laser ToF sensor
-- [RAK1904](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK1904/Overview) :arrow_heading_up: WisBlock Acceleration sensor
-- [Solar Board](https://store.rakwireless.com/products/solar-board-1?_pos=1&_sid=cbf51f193&_ss=r) :arrow_heading_up: RAKWireless solar panel    
+- [RAK4631](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK4631/Overview/) WisBlock Core module
+- [RAK19003](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK19003/Overview/) WisBlock Base board
+- [RAK12014](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK12017/Overview/) WisBlock Laser ToF sensor
+- [RAK1904](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK1904/Overview) WisBlock Acceleration sensor
+- [Solar Board](https://store.rakwireless.com/products/solar-board-1?_pos=1&_sid=cbf51f193&_ss=r) RAKWireless solar panel    
 
 ## Power consumption
 The application does switch off the Laser ToF module and the MCU and LoRa transceiver go into sleep mode between measurement cycles to save power. I could measure a sleep current of 20-40uA of the whole system. 
@@ -138,13 +135,13 @@ The application does switch off the Laser ToF module and the MCU and LoRa transc
 ----
 
 # Software used
-- [PlatformIO](https://platformio.org/install) :arrow_heading_up:
-- [Adafruit nRF52 BSP](https://docs.platformio.org/en/latest/boards/nordicnrf52/adafruit_feather_nrf52832.html) :arrow_heading_up:
-- [Patch to use RAK4631 with PlatformIO](https://github.com/RAKWireless/WisBlock/blob/master/PlatformIO/RAK4630/README.md) :arrow_heading_up:
-- [SX126x-Arduino LoRaWAN library](https://github.com/beegee-tokyo/SX126x-Arduino) :arrow_heading_up:
-- [WisBlock-API](https://platformio.org/lib/show/12807/WisBlock-API) :arrow_heading_up:
-- [SparkFun LIS3DH Arduino Library](https://platformio.org/lib/show/1401/SparkFun%20LIS3DH%20Arduino%20Library) :arrow_heading_up:
-- [Pololu VL53L0X Library](https://platformio.org/lib/show//854/VL53L0X) :arrow_heading_up:
+- [PlatformIO](https://platformio.org/install)
+- [Adafruit nRF52 BSP](https://docs.platformio.org/en/latest/boards/nordicnrf52/adafruit_feather_nrf52832.html)
+- [Patch to use RAK4631 with PlatformIO](https://github.com/RAKWireless/WisBlock/blob/master/PlatformIO/RAK4630/README.md)
+- [SX126x-Arduino LoRaWAN library](https://github.com/beegee-tokyo/SX126x-Arduino)
+- [WisBlock-API](https://platformio.org/lib/show/12807/WisBlock-API)
+- [SparkFun LIS3DH Arduino Library](https://platformio.org/lib/show/1401/SparkFun%20LIS3DH%20Arduino%20Library)
+- [Pololu VL53L0X Library](https://platformio.org/lib/show//854/VL53L0X)
 
 ## _REMARK_
 The libraries are all listed in the **`platformio.ini`** and are automatically installed when the project is compiled.
@@ -153,25 +150,25 @@ The libraries are all listed in the **`platformio.ini`** and are automatically i
 
 # Setting up LoRaWAN credentials
 The LoRaWAN settings can be defined in three different ways. 
-- Over BLE with [WisBlock Toolbox](https://play.google.com/store/apps/details?id=tk.giesecke.wisblock_toolbox) :arrow_heading_up:
-- Over USB with [AT Commands](https://github.com/beegee-tokyo/WisBlock-API/blob/main/AT-Commands.md) :arrow_heading_up:
+- Over BLE with [WisBlock Toolbox](https://play.google.com/store/apps/details?id=tk.giesecke.wisblock_toolbox)
+- Over USB with [AT Commands](./AT-Commands.md)
 - Hardcoded in the sources (_**ABSOLUTELY NOT RECOMMENDED**_)
 
 ## 1) Setup over BLE
-Using the [WisBlock Toolbox](https://play.google.com/store/apps/details?id=tk.giesecke.wisblock_toolbox) :arrow_heading_up: you can connect to the WisBlock over BLE and setup all LoRaWAN parameters like
+Using the [WisBlock Toolbox](https://play.google.com/store/apps/details?id=tk.giesecke.wisblock_toolbox) you can connect to the WisBlock over BLE and setup all LoRaWAN parameters like
 - Region
 - OTAA/ABP
 - Confirmed/Unconfirmed message
 - ...
 
-More details can be found in the [WisBlock Toolbox](https://github.com/beegee-tokyo/WisBlock-Toolbox#readme) :arrow_heading_up:
+More details can be found in the [WisBlock Toolbox](https://github.com/beegee-tokyo/WisBlock-Toolbox#readme)
 
-The device is advertising over BLE only the first 30 seconds after power up and then again for 15 seconds after wakeup for measurements. The device is advertising as **`MHC-WL-xx`** where xx is the BLE MAC address of the device.
+The device is advertising over BLE only the first 30 seconds after power up and then again for 15 seconds after wakeup for measurements. The device is advertising as **`RAK-GNSS-xx`** where xx is the BLE MAC address of the device.
 
 ## 2) Setup over USB port
 Using the AT command interface the WisBlock can be setup over the USB port.
 
-A detailed manual for the AT commands are in [AT-Commands.md](https://github.com/beegee-tokyo/WisBlock-API/blob/main/AT-Commands.md) :arrow_heading_up:
+A detailed manual for the AT commands are in [AT-Commands.md](https://github.com/beegee-tokyo/WisBlock-API/blob/main/AT-Commands.md) (_**external link**_)
 
 Here is an example for the typical AT commands required to get the device ready (EUI's and Keys are examples):
 ```log
@@ -190,11 +187,11 @@ AT+BAND=8
 // Reset node to save the new parameters
 ATZ
 // After reboot, start join request
-AT+JOIN=1,1,8,10
+AT+JOIN=1,0,8,10
 ```
 
 ## _REMARK_
-The AT command format used here is compatible (with a few small differences) with the new RAKWireless AT command standard used in the RAK3172.
+The AT command format used here is _**NOT**_ compatible with the RAK5205/RAK7205 AT commands.
 
 ## 3) Hardcoded LoRaWAN settings
 `void api_set_credentials(void);`
@@ -242,7 +239,7 @@ The compiled files are located in the [./Generated](./Generated) folder. Each su
 x.y.z is the version number. The version number is setup in the [./platformio.ini](./platformio.ini) file.    
 YYYY.MM.dd.hh.mm.ss is the timestamp of the compilation.
 
-The generated **`.zip`** file can be used as well to update the device over BLE using either [My nRF52 Toolbox repo](https://github.com/beegee-tokyo/My-nRF52-Toolbox/blob/master/README.md) :arrow_heading_up: or [Nordic nRF Toolbox](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox) :arrow_heading_up: or [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp) :arrow_heading_up:
+The generated **`.zip`** file can be used as well to update the device over BLE using either [My nRF52 Toolbox repo](https://github.com/beegee-tokyo/My-nRF52-Toolbox/blob/master/README.md) or [Nordic nRF Toolbox](https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrftoolbox) or [nRF Connect](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp)
 
 ----
 
@@ -275,8 +272,7 @@ build_flags =
 	-DNO_BLE_LED=1   ; 1 Disable blue LED as BLE notificator
 lib_deps = 
 	beegee-tokyo/SX126x-Arduino
-	beegee-tokyo/WisBlock-API
 	sparkfun/SparkFun LIS3DH Arduino Library
-	pololu/VL53L0X
+	beegee-tokyo/WisBlock-API
 extra_scripts = pre:rename.py
 ```

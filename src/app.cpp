@@ -111,7 +111,8 @@ void app_event_handler(void)
 				g_sensor_payload.data_flag0, g_sensor_payload.data_flag1, g_sensor_payload.level_1, g_sensor_payload.level_2,
 				g_sensor_payload.data_flag2, g_sensor_payload.data_flag3, g_sensor_payload.batt_1, g_sensor_payload.batt_2,
 				g_sensor_payload.data_flag4, g_sensor_payload.data_flag5, g_sensor_payload.alarm_of,
-				g_sensor_payload.data_flag6, g_sensor_payload.data_flag7, g_sensor_payload.alarm_ll);
+				g_sensor_payload.data_flag6, g_sensor_payload.data_flag7, g_sensor_payload.alarm_ll,
+				g_sensor_payload.data_flag8, g_sensor_payload.data_flag9, g_sensor_payload.valid);
 		MYLOG("APP", "%s", payload_log);
 #endif
 		// Send button status

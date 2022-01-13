@@ -22,6 +22,9 @@ uint16_t overflow_treshold = 20;
 /** Low level treshold for alarm */
 uint16_t lowlevel_treshold = 1000;
 
+/** Counter for overflow detection, to smoothen the signal, overflow has to be triggered 5 times in a row before the alarm is set */
+uint8_t overflow_counter = 0;
+
 /** Counter for low level detection, to smoothen the signal, low level has to be triggered 10 times in a row before the alarm is set */
 uint8_t lowlevel_counter = 0;
 
@@ -96,6 +99,7 @@ void get_water_level(void)
 
 	uint64_t collected = 0;
 	bool got_valid_data = false;
+	g_sensor_payload.valid = false;
 	// uint64_t single_reading = (uint64_t)tof_sensor.readRangeContinuousMillimeters();
 	uint64_t single_reading = (uint64_t)tof_sensor.readRangeSingleMillimeters();
 	if (tof_sensor.timeoutOccurred() || (single_reading == 65535))
@@ -107,13 +111,22 @@ void get_water_level(void)
 	{
 		// We are measuring against water surface, sometimes waves or reflections can give too high values
 		// The tank is only 1200mm deep, so any value above should be discarded
-		if (single_reading < 1200)
+		if (single_reading < 1100)
 		{
 			collected = single_reading;
 			// We got at least one measurement
 			got_valid_data = true;
+			g_sensor_payload.valid = true;
+		}
+		else
+		{
+			collected = analog_val.analog16;
+			// We got at least one measurement
+			got_valid_data = true;
+			MYLOG("ToF", "Measured > 1100mm");
 		}
 	}
+	delay(100);
 
 	for (int reading = 0; reading < 10; reading++)
 	{
@@ -125,15 +138,17 @@ void get_water_level(void)
 		else
 		{
 			// We are measuring against water surface, sometimes waves or reflections can give too high values
-			// The tank is only 1200mm deep, so any value above should be discarded
-			if (single_reading < 1200)
+			// The tank is only 1100mm deep, so any value above should be discarded
+			if (single_reading < 1100)
 			{
 				collected += single_reading;
 				collected = collected / 2;
 				// We got at least one measurement
 				got_valid_data = true;
+				g_sensor_payload.valid = true;
 			}
 		}
+		delay(100);
 	}
 
 	// If we failed to get a valid reading, we set it to the last measured value
@@ -142,20 +157,35 @@ void get_water_level(void)
 		collected = analog_val.analog16;
 	}
 
-	MYLOG("ToF", "Water level %d mm", (uint16_t)collected);
+	MYLOG("ToF", "Water level %d mm", 1100 - (uint16_t)collected);
 
-	analog_val.analog16 = (uint16_t)(collected);
+	// For now we use fixed 1100mm as tank depth, should be made flexible!
+	uint16_t new_level = 1100 - collected;
+	analog_val.analog16 = (uint16_t)(new_level);
 	g_sensor_payload.level_1 = analog_val.analog8[1];
 	g_sensor_payload.level_2 = analog_val.analog8[0];
+
+	// Just in case next readings go wrong
+	analog_val.analog16 = collected;
 
 	// Check for overflow
 	if (collected < overflow_treshold)
 	{
-		g_sensor_payload.alarm_of = 1;
+		overflow_counter++;
+		if (overflow_counter == 5)
+		{
+			g_sensor_payload.alarm_of = 1;
+			overflow_counter = 0;
+		}
+		else
+		{
+			g_sensor_payload.alarm_of = 0;
+		}
 	}
 	else
 	{
 		g_sensor_payload.alarm_of = 0;
+		overflow_counter = 0;
 	}
 
 	// Check for water outage
