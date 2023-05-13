@@ -1,14 +1,14 @@
 /**
  * @file app.cpp
  * @author Bernd Giesecke (bernd.giesecke@rakwireless.com)
- * @brief Application specific functions. Mandatory to have init_app(), 
+ * @brief Application specific functions. Mandatory to have init_app(),
  *        app_event_handler(), ble_data_handler(), lora_data_handler()
  *        and lora_tx_finished()
  * @version 0.1
  * @date 2021-04-23
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 
 #include "app.h"
@@ -22,21 +22,22 @@ BaseType_t g_higher_priority_task_woken = pdTRUE;
 /** Send Fail counter **/
 uint8_t send_fail = 0;
 
-/** LoRaWAN payload */
-sensor_payload_s g_sensor_payload;
+/** LoRaWAN packet */
+WisCayenne g_solution_data(255);
 
 /** Battery level uinion */
 analog_s batt_level;
 
 /**
  * @brief Application specific setup functions
- * 
+ *
  */
 void setup_app(void)
 {
 	// Enable BLE
 	g_enable_ble = true;
 #if API_DEBUG == 0
+#if MY_DEBUG > 0
 	// Initialize Serial for debug output
 	Serial.begin(115200);
 
@@ -55,11 +56,12 @@ void setup_app(void)
 		}
 	}
 #endif
+#endif
 }
 
 /**
  * @brief Application specific initializations
- * 
+ *
  * @return true Initialization success
  * @return false Initialization failure
  */
@@ -79,6 +81,9 @@ bool init_app(void)
 	// Initialize ACC sensor
 	result |= init_acc();
 
+	// Reset the packet
+	g_solution_data.reset();
+
 	return result;
 }
 
@@ -95,39 +100,52 @@ void app_event_handler(void)
 		g_task_event_type &= N_STATUS;
 		MYLOG("APP", "Timer wakeup");
 
+		// Reset the packet
+		g_solution_data.reset();
+
 		// Get water level
 		get_water_level();
 
 		// Get Battery status
-		batt_level.analog16 = read_batt() / 10;
-		MYLOG("APP", "Battery level %d\n", batt_level.analog16 * 10);
+		float batt_level_f = read_batt();
+		g_solution_data.addVoltage(LPP_CHANNEL_BATT, batt_level_f / 1000.0);
 
-		g_sensor_payload.batt_1 = batt_level.analog8[1];
-		g_sensor_payload.batt_2 = batt_level.analog8[0];
-
-#if MY_DEBUG > 0
-		char payload_log[64] = {0};
-		sprintf(payload_log, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
-				g_sensor_payload.data_flag0, g_sensor_payload.data_flag1, g_sensor_payload.level_1, g_sensor_payload.level_2,
-				g_sensor_payload.data_flag2, g_sensor_payload.data_flag3, g_sensor_payload.batt_1, g_sensor_payload.batt_2,
-				g_sensor_payload.data_flag4, g_sensor_payload.data_flag5, g_sensor_payload.alarm_of,
-				g_sensor_payload.data_flag6, g_sensor_payload.data_flag7, g_sensor_payload.alarm_ll,
-				g_sensor_payload.data_flag8, g_sensor_payload.data_flag9, g_sensor_payload.valid);
-		MYLOG("APP", "%s", payload_log);
-#endif
-		// Send button status
-		lmh_error_status result = send_lora_packet((uint8_t *)&g_sensor_payload, PAYLOAD_LENGTH);
-		switch (result)
+		if (g_lorawan_settings.lorawan_enable)
 		{
-		case LMH_SUCCESS:
-			MYLOG("APP", "Packet enqueued");
-			break;
-		case LMH_BUSY:
-			MYLOG("APP", "LoRa transceiver is busy");
-			break;
-		case LMH_ERROR:
-			MYLOG("APP", "Packet error, too big to send with current DR");
-			break;
+			// Send water level status
+			lmh_error_status result = send_lora_packet(g_solution_data.getBuffer(), g_solution_data.getSize());
+			switch (result)
+			{
+			case LMH_SUCCESS:
+				MYLOG("APP", "Packet enqueued");
+				break;
+			case LMH_BUSY:
+				MYLOG("APP", "LoRa transceiver is busy");
+				AT_PRINTF("+EVT:BUSY_ERROR\n");
+				break;
+			case LMH_ERROR:
+				MYLOG("APP", "Packet error, too big to send with current DR");
+				AT_PRINTF("+EVT:DR_ERROR\n");
+				break;
+			}
+		}
+		else
+		{
+			// Add the device DevEUI as a device ID to the packet
+			uint8_t packet_buffer[g_solution_data.getSize() + 8];
+			memcpy(packet_buffer, g_lorawan_settings.node_device_eui, 8);
+			memcpy(&packet_buffer[8], g_solution_data.getBuffer(), g_solution_data.getSize());
+
+			// Send packet over LoRa
+			if (send_p2p_packet(packet_buffer, g_solution_data.getSize() + 8))
+			{
+				MYLOG("APP", "Packet enqueued");
+			}
+			else
+			{
+				AT_PRINTF("+EVT:SIZE_ERROR\n");
+				MYLOG("APP", "Packet too big");
+			}
 		}
 	}
 
@@ -145,7 +163,7 @@ void app_event_handler(void)
 
 /**
  * @brief Handle BLE UART data
- * 
+ *
  */
 void ble_data_handler(void)
 {
@@ -170,7 +188,7 @@ void ble_data_handler(void)
 
 /**
  * @brief Handle received LoRa Data
- * 
+ *
  */
 void lora_data_handler(void)
 {

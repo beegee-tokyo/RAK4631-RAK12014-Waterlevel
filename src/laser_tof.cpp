@@ -4,9 +4,9 @@
  * @brief Initialize and read information from ITR20001T sensor
  * @version 0.1
  * @date 2021-09-22
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 #include "app.h"
 
@@ -31,9 +31,12 @@ uint8_t lowlevel_counter = 0;
 /** Switch between usage of on/off pin 0 and power on/off 1 */
 #define POWER_OFF 1
 
+// Power pin for RAK12014
+uint8_t xshut_pin = WB_IO3;
+
 /**
  * @brief INitialize the VL53L01 sensor
- * 
+ *
  * @return true If sensor was found
  * @return false If sensor is not connected
  */
@@ -43,10 +46,10 @@ bool init_tof(void)
 	digitalWrite(WB_IO2, HIGH);
 
 	// On/Off control pin
-	pinMode(WB_IO4, OUTPUT);
+	pinMode(xshut_pin, OUTPUT);
 
 	// Sensor on
-	digitalWrite(WB_IO4, HIGH);
+	digitalWrite(xshut_pin, HIGH);
 
 	// Wait for sensor wake-up
 	delay(150);
@@ -75,7 +78,7 @@ bool init_tof(void)
 #endif
 
 	// Sensor off
-	digitalWrite(WB_IO4, LOW);
+	digitalWrite(xshut_pin, LOW);
 	return true;
 }
 
@@ -85,7 +88,7 @@ bool init_tof(void)
  * 		and the water surface. The water level is calculated in the data
  * 		integration of the LPWAN server.
  * 		Measured data is written directly into the LPWAN packet.
- * 
+ *
  */
 void get_water_level(void)
 {
@@ -94,12 +97,11 @@ void get_water_level(void)
 #endif
 
 	// Sensor on
-	digitalWrite(WB_IO4, HIGH);
+	digitalWrite(xshut_pin, HIGH);
 	delay(300);
 
 	uint64_t collected = 0;
 	bool got_valid_data = false;
-	g_sensor_payload.valid = false;
 	// uint64_t single_reading = (uint64_t)tof_sensor.readRangeContinuousMillimeters();
 	uint64_t single_reading = (uint64_t)tof_sensor.readRangeSingleMillimeters();
 	if (tof_sensor.timeoutOccurred() || (single_reading == 65535))
@@ -110,13 +112,12 @@ void get_water_level(void)
 	else
 	{
 		// We are measuring against water surface, sometimes waves or reflections can give too high values
-		// The tank is only 1200mm deep, so any value above should be discarded
+		// The tank is only ~1100mm deep, so any value above should be discarded
 		if (single_reading < 1100)
 		{
 			collected = single_reading;
 			// We got at least one measurement
 			got_valid_data = true;
-			g_sensor_payload.valid = true;
 		}
 		else
 		{
@@ -138,32 +139,30 @@ void get_water_level(void)
 		else
 		{
 			// We are measuring against water surface, sometimes waves or reflections can give too high values
-			// The tank is only 1100mm deep, so any value above should be discarded
+			// The tank is only ~1100mm deep, so any value above should be discarded
 			if (single_reading < 1100)
 			{
 				collected += single_reading;
 				collected = collected / 2;
 				// We got at least one measurement
 				got_valid_data = true;
-				g_sensor_payload.valid = true;
 			}
 		}
 		delay(100);
 	}
 
 	// If we failed to get a valid reading, we set it to the last measured value
-	if (!got_valid_data)
-	{
-		collected = analog_val.analog16;
-	}
+	g_solution_data.addPresence(LPP_CHANNEL_WL_VALID, got_valid_data);
+
+	MYLOG("ToF", "Measured distance %d mm", (uint16_t)collected);
 
 	MYLOG("ToF", "Water level %d mm", 1100 - (uint16_t)collected);
 
 	// For now we use fixed 1100mm as tank depth, should be made flexible!
 	uint16_t new_level = 1100 - collected;
-	analog_val.analog16 = (uint16_t)(new_level);
-	g_sensor_payload.level_1 = analog_val.analog8[1];
-	g_sensor_payload.level_2 = analog_val.analog8[0];
+
+	// Add level to the payload in cm
+	g_solution_data.addAnalogInput(LPP_CHANNEL_WLEVEL, (float)(new_level / 10));
 
 	// Just in case next readings go wrong
 	analog_val.analog16 = collected;
@@ -174,17 +173,17 @@ void get_water_level(void)
 		overflow_counter++;
 		if (overflow_counter == 5)
 		{
-			g_sensor_payload.alarm_of = 1;
+			g_solution_data.addPresence(LPP_CHANNEL_WL_HIGH, true);
 			overflow_counter = 0;
 		}
 		else
 		{
-			g_sensor_payload.alarm_of = 0;
+			g_solution_data.addPresence(LPP_CHANNEL_WL_HIGH, false);
 		}
 	}
 	else
 	{
-		g_sensor_payload.alarm_of = 0;
+		g_solution_data.addPresence(LPP_CHANNEL_WL_HIGH, false);
 		overflow_counter = 0;
 	}
 
@@ -194,22 +193,22 @@ void get_water_level(void)
 		lowlevel_counter++;
 		if (lowlevel_counter == 10)
 		{
-			g_sensor_payload.alarm_ll = 1;
+			g_solution_data.addPresence(LPP_CHANNEL_WL_LOW, true);
 			lowlevel_counter = 0;
 		}
 		else
 		{
-			g_sensor_payload.alarm_ll = 0;
+			g_solution_data.addPresence(LPP_CHANNEL_WL_LOW, false);
 		}
 	}
 	else
 	{
-		g_sensor_payload.alarm_ll = 0;
+		g_solution_data.addPresence(LPP_CHANNEL_WL_LOW, false);
 		lowlevel_counter = 0;
 	}
 
 	// Sensor off
-	digitalWrite(WB_IO4, LOW);
+	digitalWrite(xshut_pin, LOW);
 
 #if POWER_OFF == 1
 	// Disable power for IO slot

@@ -17,7 +17,7 @@
 
 #include <Wire.h>
 /** Include the WisBlock-API */
-#include <WisBlock-API.h>
+#include <WisBlock-API-V2.h>
 
 // Debug output set to 0 to disable app debug output
 #ifndef MY_DEBUG
@@ -57,7 +57,7 @@ extern BaseType_t g_higher_priority_task_woken;
 
 /** Accelerometer stuff */
 #include <SparkFunLIS3DH.h>
-#define INT1_PIN WB_IO3
+#define INT1_PIN WB_IO5
 bool init_acc(void);
 void clear_acc_int(void);
 void read_acc(void);
@@ -69,33 +69,16 @@ void get_water_level(void);
 extern uint16_t overflow_treshold;
 extern uint16_t lowlevel_treshold;
 
-/**
- * @brief LoRa packet structure
- * 		Using Cayenne LPP format
- * 
- */
-struct sensor_payload_s
-{
-	uint8_t data_flag0 = 0x01; // 1 Channel # 1
-	uint8_t data_flag1 = 0x02; // 2 Analog Input
-	uint8_t level_1 = 0;	   // 3 Water level
-	uint8_t level_2 = 0;	   // 4 Water level
-	uint8_t data_flag2 = 0x02; // 5 Channel # 2
-	uint8_t data_flag3 = 0x02; // 6 Analog Input
-	uint8_t batt_1 = 0;		   // 7 Battery level
-	uint8_t batt_2 = 0;		   // 8 Battery level
-	uint8_t data_flag4 = 0x03; // 9 Channel # 3
-	uint8_t data_flag5 = 0x66; // 10 Presence sensor (Alarm)
-	uint8_t alarm_of = 0;	   // 11 Alarm flag overflow
-	uint8_t data_flag6 = 0x04; // 12 Channel # 4
-	uint8_t data_flag7 = 0x66; // 13 Presence sensor (Alarm)
-	uint8_t alarm_ll = 0;	   // 14 Alarm flag low level
-	uint8_t data_flag8 = 0x05; // 15 Channel # 4
-	uint8_t data_flag9 = 0x66; // 16 Presence sensor (Validity)
-	uint8_t valid = 0;		   // 17 Validity flag
-};
-extern sensor_payload_s g_sensor_payload;
-#define PAYLOAD_LENGTH sizeof(sensor_payload_s)
+// LoRaWAN stuff
+#include <wisblock_cayenne.h>
+// Cayenne LPP Channel numbers per sensor value
+#define LPP_CHANNEL_BATT 1	   // Base Board
+#define LPP_CHANNEL_WLEVEL 61  // RAK12014
+#define LPP_CHANNEL_WL_LOW 62  // RAK12014
+#define LPP_CHANNEL_WL_HIGH 63 // RAK12014
+#define LPP_CHANNEL_WL_VALID 64 // RAK12014
+
+extern WisCayenne g_solution_data;
 
 /** Analog value union */
 union analog_s
